@@ -134,6 +134,13 @@ def create_customer():
     return customer_schema.jsonify(customer), 201
 
 
+
+
+
+
+
+
+
 # GET All Customers
 @customers_bp.route("/", methods=["GET"])
 # Add Rate Limiting 
@@ -141,6 +148,56 @@ def create_customer():
 # from repeated login attempts or request abuse
 @limiter.limit("5 per minute")
 def get_customers():
+    """
+    Get all customers
+    ---
+    tags:
+      - Customers
+
+    summary: Create a customer
+    description: Creates a new customer account in the Mechanic Shop API.
+
+    parameters:
+      - name: page
+        in: query
+        required: false
+        type: integer
+        default: 1
+        description: Page number to return 
+        
+    
+      - name: per_page
+        in: query
+        required: false
+        type: integer
+        default: 5
+        description: Number of customers to return per page
+
+    responses:
+        200:
+            description: Customers retrieved successfully
+            schema:
+                type: object
+                properties:
+                    customers:
+                        type: array
+                        items: 
+                            $ref: '#/definitions/CustomerResponse'
+                        
+                    page:
+                        type: integer
+                        example: 1
+                    per_page:
+                        type: integer
+                        example: 5
+                    total_pages:
+                        type: integer
+                        example: 2
+                    total_customers:
+                        type: integer
+                        example: 7
+    """    
+    
     # The first page
     page = request.args.get(
         "page",
@@ -172,6 +229,13 @@ def get_customers():
         "total_pages": pagination.pages,
         "total_customers": pagination.total
     }), 200
+
+
+
+
+
+
+
 
 
 # GET One Customer

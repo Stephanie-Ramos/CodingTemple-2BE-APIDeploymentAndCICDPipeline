@@ -65,7 +65,7 @@ class TestCustomers(unittest.TestCase):
             "testcustomer@email.com"
         )
         
-    # negative test because your email field is unique, so the API should reject the second customer instead of creating a duplicate
+    # POST create customer: negative test because your email field is unique, so the API should reject the second customer instead of creating a duplicate
     def test_create_customer_duplicate_email(self):
         customer_payload = {
             "name": "Test Customer",
@@ -102,3 +102,59 @@ class TestCustomers(unittest.TestCase):
             "Email already exists"
         )
         
+        
+    # Second, Positive Test: GET all customers
+    def test_get_customers(self):
+        response = self.client.get(
+            "/customers/"
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200
+        )
+
+        data = response.get_json()
+
+        self.assertIn(
+            "customers",
+            data
+        )
+
+        self.assertIn(
+            "page",
+            data
+        )
+
+        self.assertIn(
+            "per_page",
+            data
+        )
+
+        self.assertIn(
+            "total_pages",
+            data
+        )
+
+        self.assertIn(
+            "total_customers",
+            data
+        )
+    
+    # Second, Empty Page Test: GET all customers
+    def test_get_customers_empty_page(self):
+        response = self.client.get(
+            "/customers/?page=999"
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200
+        )
+
+        data = response.get_json()
+
+        self.assertEqual(
+            data["customers"],
+            []
+        )
