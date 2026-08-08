@@ -29,11 +29,73 @@ from application.blueprints.customers.schemas import (customer_schema, customers
 # This imports the schema used to serialize multiple service tickets
 from application.blueprints.service_tickets.schemas import service_tickets_schema
 
+from sqlalchemy.exc import IntegrityError
+
+
 # POST create customer
 # the full URL becomes POST /customers/
 @customers_bp.route("/", methods=["POST"])
 # Defines the function that runs when someone creates a customer 
 def create_customer():
+    """
+    Create a new customer
+    ---
+    tags:
+      - Customers
+
+    summary: Create a customer
+    description: Creates a new customer account in the Mechanic Shop API.
+
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+            id: CustomerPayload
+            type: object
+            required:
+                - name
+                - email
+                - phone
+                - password
+            properties:
+                name:
+                    type: string
+                    example: Jane Doe
+                email:
+                    type: string
+                    example: jane@example.com
+                phone:
+                    type: string
+                    example: 555-123-4567
+                password:
+                    type: string
+                    example: password123
+
+    responses:
+        201:
+            description: Customer successfully created
+            schema:
+                id: CustomerResponse
+                type: object
+                properties:
+                    id:
+                        type: integer
+                        example: 1
+                    name:
+                        type: string
+                        example: Jane Doe
+                    email:
+                        type: string
+                        example: jane@example.com
+                    phone:
+                        type: string
+                        example: 555-123-4567
+
+        400:
+            description: Invalid customer data
+    """
+    
     try:
         # Uses Marshmallow to validate and deserialize the incoming JSON
         customer = customer_schema.load(
@@ -50,8 +112,19 @@ def create_customer():
 
     # Adds the new Customer object to SQLAlchemy's session
     db.session.add(customer)
-    # This permanently inserts the customer into MySQL 
-    db.session.commit()
+    
+    try:
+        # Permanently inserts the customer into the database
+        db.session.commit()
+
+    except IntegrityError:
+        # Resets the failed transaction
+        db.session.rollback()
+        
+        return jsonify({
+            "message": "Email already exists"
+        }), 400
+    
 
     # This clears everything currently stored in Flask-Caching 
     # Throw away the existing cached responses so the next request retrieves fresh data
