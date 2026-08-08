@@ -158,3 +158,67 @@ class TestCustomers(unittest.TestCase):
             data["customers"],
             []
         )
+        
+    
+    # Third, Positive Test: Get customer by id
+    def test_get_customer_by_id(self):
+        customer_payload = {
+            "name": "Test Customer",
+            "email": "customerbyid@email.com",
+            "phone": "555-111-2222",
+            "password": "password123"
+        }
+
+        create_response = self.client.post(
+            "/customers/",
+            json=customer_payload
+        )
+
+        self.assertEqual(
+            create_response.status_code,
+            201
+        )
+
+        created_customer = create_response.get_json()
+
+        customer_id = created_customer["id"]
+
+        response = self.client.get(
+            f"/customers/{customer_id}"
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200
+        )
+
+        data = response.get_json()
+
+        self.assertEqual(
+            data["id"],
+            customer_id
+        )
+
+        self.assertEqual(
+            data["email"],
+            "customerbyid@email.com"
+        )
+     
+        
+    # Third, Negative Test: Get customer by id
+    def test_get_customer_not_found(self):
+        response = self.client.get(
+            "/customers/9999"
+        )
+
+        self.assertEqual(
+            response.status_code,
+            404
+        )
+
+        data = response.get_json()
+
+        self.assertEqual(
+            data["message"],
+            "Customer not found"
+        )

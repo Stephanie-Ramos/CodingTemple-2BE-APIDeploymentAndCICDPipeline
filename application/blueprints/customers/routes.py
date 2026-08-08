@@ -32,6 +32,9 @@ from application.blueprints.service_tickets.schemas import service_tickets_schem
 from sqlalchemy.exc import IntegrityError
 
 
+
+
+
 # POST create customer
 # the full URL becomes POST /customers/
 @customers_bp.route("/", methods=["POST"])
@@ -137,10 +140,6 @@ def create_customer():
 
 
 
-
-
-
-
 # GET All Customers
 @customers_bp.route("/", methods=["GET"])
 # Add Rate Limiting 
@@ -234,13 +233,35 @@ def get_customers():
 
 
 
-
-
-
-
 # GET One Customer
 @customers_bp.route("/<int:id>", methods=["GET"])
 def get_customer(id):
+    """
+    Get one customer
+    ---
+    tags:
+      - Customers
+
+    summary: Get a customer by ID
+    description: Returns a single customer using the customer's unique ID.
+
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+        description: The unique ID of the customer
+
+    responses:
+      200:
+        description: Customer retrieved successfully
+        schema:
+          $ref: '#/definitions/CustomerResponse'
+
+      404:
+        description: Customer not found
+    """
+    
     # Looks for the customer whose primary key equals id 
     customer = db.session.get(Customer, id)
 
@@ -301,6 +322,9 @@ def update_customer(auth_customer_id, customer_id):
     return customer_schema.jsonify(customer), 200
 
 
+
+
+
 # POST Customer Login Route
 # Creates POST /customers/login
 @customers_bp.route("/login", methods=["POST"])
@@ -330,9 +354,11 @@ def login():
     return jsonify({
         "message": "Invalid email or password"
     }), 401
-    
-  
-  
+
+
+
+
+
 # GET all of my tickets   
 # creates: GET /customers/my-tickets in the URL
 @customers_bp.route("/my-tickets", methods=["GET"])
@@ -350,6 +376,9 @@ def get_my_tickets(customer_id):
     ).scalars().all()
 
     return service_tickets_schema.jsonify(tickets), 200
+
+
+
 
 
 # DELETE a customer 
