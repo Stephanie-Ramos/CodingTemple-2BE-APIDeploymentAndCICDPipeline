@@ -220,6 +220,40 @@ def get_service_ticket(ticket_id):
     methods=["PUT"],
 )
 def assign_mechanic(ticket_id, mechanic_id):
+    """
+    Assign a mechanic to a service ticket
+    ---
+    tags:
+      - Service Tickets
+
+    summary: Assign a mechanic to a service ticket
+    description: Assigns an existing mechanic to an existing service ticket.
+
+    parameters:
+      - name: ticket_id
+        in: path
+        required: true
+        type: integer
+        description: The ID of the service ticket
+
+      - name: mechanic_id
+        in: path
+        required: true
+        type: integer
+        description: The ID of the mechanic to assign
+
+    responses:
+      200:
+        description: Mechanic assigned successfully
+        schema:
+          $ref: '#/definitions/ServiceTicketResponse'
+
+      404:
+        description: Service ticket or mechanic not found
+
+      409:
+        description: Mechanic is already assigned to this service ticket
+    """
     service_ticket = db.session.get(
         ServiceTicket,
         ticket_id,
@@ -261,6 +295,52 @@ def assign_mechanic(ticket_id, mechanic_id):
 #  PUT Edit mechanic in service tickets 
 @service_tickets_bp.route("/<int:ticket_id>/edit", methods=["PUT"])
 def edit_ticket_mechanics(ticket_id):
+    """
+    Edit mechanics assigned to a service ticket
+    ---
+    tags:
+      - Service Tickets
+
+    summary: Edit mechanics on a service ticket
+    description: Adds and removes mechanics assigned to an existing service ticket.
+
+    parameters:
+      - name: ticket_id
+        in: path
+        required: true
+        type: integer
+        description: The ID of the service ticket
+
+      - name: body
+        in: body
+        required: true
+        schema:
+          id: EditTicketMechanicsPayload
+          type: object
+          properties:
+            add_ids:
+              type: array
+              items:
+                type: integer
+              example:
+                - 1
+                - 2
+            remove_ids:
+              type: array
+              items:
+                type: integer
+              example:
+                - 3
+
+    responses:
+      200:
+        description: Service ticket mechanics updated successfully
+        schema:
+          $ref: '#/definitions/ServiceTicketResponse'
+
+      404:
+        description: Service ticket or mechanic not found
+    """
     # Finds the service ticket 
     ticket = db.session.get(ServiceTicket, ticket_id)
 
@@ -271,6 +351,11 @@ def edit_ticket_mechanics(ticket_id):
 
     # gets the JSON body sent by Postman 
     data = request.get_json()
+    
+    if not data:
+        return jsonify({
+            "message": "Request body must contain JSON data."
+        }), 400
 
     # extract the two mechanic ID lists 
     add_ids = data.get("add_ids", [])

@@ -255,8 +255,319 @@ class TestServiceTickets(unittest.TestCase):
 
 
 
+    # Fourth, Positive Test: PUT assign mechanic to ticket id 
+    def test_assign_mechanic_to_service_ticket(self):
 
-    # Fourth, Positive Test: PUT remove mechanic from ticket id 
+        customer_response = self.client.post(
+            "/customers/",
+            json={
+                "name": "Ticket Customer",
+                "email": "assigncustomer@email.com",
+                "phone": "555-111-2222",
+                "password": "password123"
+            }
+        )
+
+        customer_id = customer_response.get_json()["id"]
+
+        ticket_response = self.client.post(
+            "/service-tickets/",
+            json={
+                "vin": "1HGCM82633A123456",
+                "service_date": "2026-08-08",
+                "service_description": "Engine inspection",
+                "customer_id": customer_id
+            }
+        )
+
+        ticket_id = ticket_response.get_json()["id"]
+
+        mechanic_response = self.client.post(
+            "/mechanics/",
+            json={
+                "name": "Assigned Mechanic",
+                "email": "assignedmechanic@email.com",
+                "phone": "555-333-4444",
+                "salary": 70000.00
+            }
+        )
+
+        mechanic_id = mechanic_response.get_json()["id"]
+
+        response = self.client.put(
+            f"/service-tickets/{ticket_id}/assign-mechanic/{mechanic_id}"
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200
+        )
+    # Fourth, Negative Test: PUT assign mechanic to ticket id
+    # Service ticket does not exist 
+    def test_assign_mechanic_ticket_not_found(self):
+        response = self.client.put(
+            "/service-tickets/9999/assign-mechanic/1"
+        )
+
+        self.assertEqual(
+            response.status_code,
+            404
+        )
+
+        data = response.get_json()
+
+        self.assertEqual(
+            data["message"],
+            "Service ticket not found."
+        )
+    # Fourth, Negative Part II Test: PUT assign mechanic to ticket id
+    # Mechanic does not exist
+    def test_assign_mechanic_not_found(self):
+        # Create customer
+        customer_response = self.client.post(
+            "/customers/",
+            json={
+                "name": "Test Customer",
+                "email": "mechanicnotfound@email.com",
+                "phone": "555-111-2222",
+                "password": "password123"
+            }
+        )
+
+        customer_id = customer_response.get_json()["id"]
+
+        # Create service ticket
+        ticket_response = self.client.post(
+            "/service-tickets/",
+            json={
+                "vin": "1HGCM82633A654321",
+                "service_date": "2026-08-08",
+                "service_description": "Engine inspection",
+                "customer_id": customer_id
+            }
+        )
+
+        ticket_id = ticket_response.get_json()["id"]
+
+        # Try assigning a mechanic that doesn't exist
+        response = self.client.put(
+            f"/service-tickets/{ticket_id}/assign-mechanic/9999"
+        )
+
+        self.assertEqual(
+            response.status_code,
+            404
+        )
+
+        data = response.get_json()
+
+        self.assertEqual(
+            data["message"],
+            "Mechanic not found."
+        )
+    # Fourth, Negative Part III Test: PUT assign mechanic to ticket id
+    # Mechanic is already assigned
+    def test_assign_mechanic_duplicate(self):
+        # Create customer
+        customer_response = self.client.post(
+            "/customers/",
+            json={
+                "name": "Duplicate Assignment Customer",
+                "email": "duplicateassignment@email.com",
+                "phone": "555-111-2222",
+                "password": "password123"
+            }
+        )
+
+        customer_id = customer_response.get_json()["id"]
+
+        # Create service ticket
+        ticket_response = self.client.post(
+            "/service-tickets/",
+            json={
+                "vin": "1HGCM82633A999999",
+                "service_date": "2026-08-08",
+                "service_description": "Brake inspection",
+                "customer_id": customer_id
+            }
+        )
+
+        ticket_id = ticket_response.get_json()["id"]
+
+        # Create mechanic
+        mechanic_response = self.client.post(
+            "/mechanics/",
+            json={
+                "name": "Duplicate Mechanic",
+                "email": "duplicateassignmentmechanic@email.com",
+                "phone": "555-333-4444",
+                "salary": 70000.00
+            }
+        )
+
+        mechanic_id = mechanic_response.get_json()["id"]
+
+        # First assignment should succeed
+        first_response = self.client.put(
+            f"/service-tickets/{ticket_id}/assign-mechanic/{mechanic_id}"
+        )
+
+        self.assertEqual(
+            first_response.status_code,
+            200
+        )
+
+        # Try assigning the same mechanic again
+        second_response = self.client.put(
+            f"/service-tickets/{ticket_id}/assign-mechanic/{mechanic_id}"
+        )
+
+        self.assertEqual(
+            second_response.status_code,
+            409
+        )
+
+        data = second_response.get_json()
+
+        self.assertEqual(
+            data["message"],
+            "Mechanic is already assigned to this service ticket."
+        )
+
+    
+
+
+
+
+
+
+    # Fifth, Positive Test: PUT Edit mechanic in service tickets
+    def test_edit_ticket_mechanics(self):
+        customer_response = self.client.post(
+            "/customers/",
+            json={
+                "name": "Edit Ticket Customer",
+                "email": "editticket@email.com",
+                "phone": "555-111-2222",
+                "password": "password123"
+            }
+        )
+
+        customer_id = customer_response.get_json()["id"]
+
+        ticket_response = self.client.post(
+            "/service-tickets/",
+            json={
+                "vin": "1HGCM82633A654321",
+                "service_date": "2026-08-08",
+                "service_description": "Transmission service",
+                "customer_id": customer_id
+            }
+        )
+
+        ticket_id = ticket_response.get_json()["id"]
+
+        mechanic_one_response = self.client.post(
+            "/mechanics/",
+            json={
+                "name": "Mechanic One",
+                "email": "editmechanic1@email.com",
+                "phone": "555-111-1111",
+                "salary": 65000.00
+            }
+        )
+
+        mechanic_one_id = mechanic_one_response.get_json()["id"]
+
+        mechanic_two_response = self.client.post(
+            "/mechanics/",
+            json={
+                "name": "Mechanic Two",
+                "email": "editmechanic2@email.com",
+                "phone": "555-222-2222",
+                "salary": 70000.00
+            }
+        )
+
+        mechanic_two_id = mechanic_two_response.get_json()["id"]
+
+        # Assign mechanic one first
+        self.client.put(
+            f"/service-tickets/{ticket_id}/assign-mechanic/{mechanic_one_id}"
+        )
+
+        # Remove mechanic one and add mechanic two
+        response = self.client.put(
+            f"/service-tickets/{ticket_id}/edit",
+            json={
+                "add_ids": [mechanic_two_id],
+                "remove_ids": [mechanic_one_id]
+            }
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200
+        ) 
+    # Fifth, Negative Test: PUT Edit mechanic in service tickets
+    def test_edit_ticket_mechanics_mechanic_not_found(self):
+        customer_response = self.client.post(
+            "/customers/",
+            json={
+                "name": "Missing Mechanic Customer",
+                "email": "missingmechanic@email.com",
+                "phone": "555-333-4444",
+                "password": "password123"
+            }
+        )
+
+        customer_id = customer_response.get_json()["id"]
+
+        ticket_response = self.client.post(
+            "/service-tickets/",
+            json={
+                "vin": "1HGCM82633A999999",
+                "service_date": "2026-08-08",
+                "service_description": "Suspension repair",
+                "customer_id": customer_id
+            }
+        )
+
+        ticket_id = ticket_response.get_json()["id"]
+
+        response = self.client.put(
+            f"/service-tickets/{ticket_id}/edit",
+            json={
+                "add_ids": [9999],
+                "remove_ids": []
+            }
+        )
+
+        self.assertEqual(
+            response.status_code,
+            404
+        )
+
+        data = response.get_json()
+
+        self.assertEqual(
+            data["message"],
+            "Mechanic 9999 not found"
+        )
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # Sixth, Positive Test: PUT remove mechanic from ticket id 
     def test_assign_mechanic_to_service_ticket(self):
         # Create customer
         customer_response = self.client.post(
@@ -306,7 +617,7 @@ class TestServiceTickets(unittest.TestCase):
             response.status_code,
             200
         )
-    # Fourth, Negative Test: PUT remove mechanic from ticket id 
+    # Sixth, Negative Test: PUT remove mechanic from ticket id 
     def test_assign_mechanic_duplicate(self):
         customer_response = self.client.post(
             "/customers/",
@@ -370,7 +681,7 @@ class TestServiceTickets(unittest.TestCase):
             data["message"],
             "Mechanic is already assigned to this service ticket."
         )
-    # Fourth, Negative Part II Test: PUT remove mechanic from ticket id 
+    # Sixth, Negative Part II Test: PUT remove mechanic from ticket id 
     # add at least one 404 test
     def test_assign_mechanic_ticket_not_found(self):
         response = self.client.put(
@@ -392,7 +703,7 @@ class TestServiceTickets(unittest.TestCase):
 
 
 
-    # Fifth, Positive Test: PUT Add Part to Service Ticket
+    # Seventh, Positive Test: PUT Add Part to Service Ticket
     def test_add_part_to_service_ticket(self):
         # Create customer
         customer_response = self.client.post(
@@ -445,7 +756,7 @@ class TestServiceTickets(unittest.TestCase):
             response.status_code,
             200
         )
-    # Fifth, Negative Test: PUT Add Part to Service Ticket
+    # Seventh, Negative Test: PUT Add Part to Service Ticket
     # duplicate-part negative test:
     def test_add_duplicate_part_to_service_ticket(self):
         # Create customer
@@ -511,7 +822,7 @@ class TestServiceTickets(unittest.TestCase):
             data["message"],
             "Part is already assigned to this service ticket"
         )
-    # Fifth, Negative Part II Test: PUT Add Part to Service Ticket
+    # Seventh, Negative Part II Test: PUT Add Part to Service Ticket
     # For a nonexistent ticket:
     def test_add_part_ticket_not_found(self):
         response = self.client.put(
@@ -529,7 +840,7 @@ class TestServiceTickets(unittest.TestCase):
             data["message"],
             "Service ticket not found"
         )
-    # Fifth, Negative Part III Test: PUT Add Part to Service Ticket
+    # Seventh, Negative Part III Test: PUT Add Part to Service Ticket
     # for a nonexistent inventory part, we need a real ticket first
     def test_add_part_inventory_not_found(self):
         customer_response = self.client.post(
