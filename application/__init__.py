@@ -79,6 +79,15 @@ def create_app(config_class=Config):
         }
         
         swag["basePath"] = "/"
+        
+        swag["securityDefinitions"] = {
+            "BearerAuth": {
+                "type": "apiKey",
+                "name": "Authorization",
+                "in": "header",
+                "description": "Enter: Bearer <your JWT token>"
+            }
+        }
 
         return jsonify(swag)
 

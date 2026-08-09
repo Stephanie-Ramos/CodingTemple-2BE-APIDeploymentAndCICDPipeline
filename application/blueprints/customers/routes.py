@@ -283,6 +283,55 @@ def get_customer(id):
 @token_required
 # The function receives two different IDs 
 def update_customer(auth_customer_id, customer_id):
+    """
+    Update a customer
+    ---
+    tags:
+      - Customers
+
+    summary: Update a customer
+    description: Updates the authenticated customer's account information.
+
+    security:
+      - BearerAuth: []
+
+    parameters:
+      - name: customer_id
+        in: path
+        required: true
+        type: integer
+        description: The ID of the customer to update
+
+      - name: body
+        in: body
+        required: true
+        schema:
+          id: CustomerUpdatePayload
+          type: object
+          properties:
+            name:
+              type: string
+              example: Updated Customer
+            email:
+              type: string
+              example: updated@example.com
+            phone:
+              type: string
+              example: 555-222-3333
+
+    responses:
+      200:
+        description: Customer updated successfully
+        schema:
+          $ref: '#/definitions/CustomerResponse'
+
+      403:
+        description: Not authorized to update this customer
+
+      404:
+        description: Customer not found
+    """
+    
     # checks whether the logged-in customer is trying to update their own account 
     if auth_customer_id != customer_id:
         return jsonify({
@@ -308,10 +357,16 @@ def update_customer(auth_customer_id, customer_id):
         partial=True
     )
 
-    # copies the new values onto the existing database customer object 
-    customer.name = customer_data.name
-    customer.email = customer_data.email
-    customer.phone = customer_data.phone
+    data = request.get_json()
+
+    if "name" in data:
+        customer.name = data["name"]
+
+    if "email" in data:
+        customer.email = data["email"]
+
+    if "phone" in data:
+        customer.phone = data["phone"]
     
 
     db.session.commit()
@@ -331,6 +386,47 @@ def update_customer(auth_customer_id, customer_id):
 # allows the client to attempt this route up to five times per minute
 @limiter.limit("5 per minute")
 def login():
+    """
+    Customer login
+    ---
+    tags:
+      - Customers
+
+    summary: Log in a customer
+    description: Authenticates a customer using email and password and returns a JWT token.
+
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          id: CustomerLoginPayload
+          type: object
+          required:
+            - email
+            - password
+          properties:
+            email:
+              type: string
+              example: customer@example.com
+            password:
+              type: string
+              example: password123
+
+    responses:
+      200:
+        description: Login successful
+        schema:
+          id: LoginResponse
+          type: object
+          properties:
+            token:
+              type: string
+              example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+      401:
+        description: Invalid email or password
+    """
     # There is no customer ID in the URL because the server determines who the customer is from their credentials
     data = login_schema.load(request.json)
 
@@ -367,6 +463,30 @@ def login():
 # There is no customer ID in the URL
 # receives the authenticated customer ID from @token_required
 def get_my_tickets(customer_id):
+    """
+    Get authenticated customer's service tickets
+    ---
+    tags:
+      - Customers
+
+    summary: Get my service tickets
+    description: Returns all service tickets belonging to the authenticated customer.
+
+    security:
+      - BearerAuth: []
+
+    responses:
+      200:
+        description: Service tickets retrieved successfully
+        schema:
+          type: array
+          items:
+            type: object
+
+      401:
+        description: Authentication token is missing or invalid
+    """
+        
     # starts executing a SQLAlchemy query and selects service ticket records
     tickets = db.session.execute(
         db.select(ServiceTicket).where(
@@ -386,6 +506,38 @@ def get_my_tickets(customer_id):
 @token_required
 # auth_customer_id: receives authentication from the JWT
 def delete_customer(auth_customer_id, customer_id):
+    """
+    Delete a customer
+    ---
+    tags:
+      - Customers
+
+    summary: Delete a customer
+    description: Deletes the authenticated customer's account.
+
+    security:
+      - BearerAuth: []
+
+    parameters:
+      - name: customer_id
+        in: path
+        required: true
+        type: integer
+        description: ID of the customer to delete
+
+    responses:
+      200:
+        description: Customer deleted successfully
+
+      403:
+        description: Not authorized to delete this customer
+
+      404:
+        description: Customer not found
+
+      401:
+        description: Authentication token is missing or invalid
+    """
     # prevents one authenticated customer from deleting another customer's account 
     if auth_customer_id != customer_id:
         return jsonify({
