@@ -14,9 +14,79 @@ from application.models import (
     Inventory,
 )
 
+
+
+
+
 # POST create service ticket
 @service_tickets_bp.route("/", methods=["POST"])
 def create_service_ticket():
+    """
+    Create a service ticket
+    ---
+    tags:
+      - Service Tickets
+
+    summary: Create a service ticket
+    description: Creates a new service ticket for an existing customer.
+
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          id: ServiceTicketPayload
+          type: object
+          required:
+            - vin
+            - service_date
+            - service_description
+            - customer_id
+          properties:
+            vin:
+              type: string
+              example: 1HGCM82633A123456
+            service_date:
+              type: string
+              format: date
+              example: "2026-08-08"
+            service_description:
+              type: string
+              example: Oil change and tire rotation
+            customer_id:
+              type: integer
+              example: 1
+
+    responses:
+      201:
+        description: Service ticket successfully created
+        schema:
+          id: ServiceTicketResponse
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            vin:
+              type: string
+              example: 1HGCM82633A123456
+            service_date:
+              type: string
+              format: date
+              example: "2026-08-08"
+            service_description:
+              type: string
+              example: Oil change and tire rotation
+            customer_id:
+              type: integer
+              example: 1
+
+      400:
+        description: Invalid service ticket data or missing customer ID
+
+      404:
+        description: Customer not found
+    """
     # looks inside python dictionary for the "customer_id" key and retrieves its value
     data = request.get_json()
 
@@ -60,9 +130,29 @@ def create_service_ticket():
     ), 201
 
 
+
+
+
 # GET all service tickets
 @service_tickets_bp.route("/", methods=["GET"])
 def get_service_tickets():
+    """
+    Get all service tickets
+    ---
+    tags:
+      - Service Tickets
+
+    summary: Get all service tickets
+    description: Returns a list of all service tickets in the Mechanic Shop API.
+
+    responses:
+      200:
+        description: Service tickets retrieved successfully
+        schema:
+          type: array
+          items:
+            $ref: '#/definitions/ServiceTicketResponse'
+    """
     service_tickets = db.session.execute(
         db.select(ServiceTicket)
     ).scalars().all()
@@ -72,12 +162,40 @@ def get_service_tickets():
     ), 200
 
 
+
+
+
 # GET service ticket by ID
 @service_tickets_bp.route(
     "/<int:ticket_id>",
     methods=["GET"],
 )
 def get_service_ticket(ticket_id):
+    """
+    Get a service ticket by ID
+    ---
+    tags:
+      - Service Tickets
+
+    summary: Get a service ticket by ID
+    description: Returns a single service ticket using its unique ticket ID.
+
+    parameters:
+      - name: ticket_id
+        in: path
+        required: true
+        type: integer
+        description: The unique ID of the service ticket
+
+    responses:
+      200:
+        description: Service ticket retrieved successfully
+        schema:
+          $ref: '#/definitions/ServiceTicketResponse'
+
+      404:
+        description: Service ticket not found
+    """
     service_ticket = db.session.get(
         ServiceTicket,
         ticket_id,
@@ -91,6 +209,9 @@ def get_service_ticket(ticket_id):
     return service_ticket_schema.jsonify(
         service_ticket
     ), 200
+
+
+
 
 
 # PUT assign mechanic to ticket id 
@@ -133,8 +254,10 @@ def assign_mechanic(ticket_id, mechanic_id):
         service_ticket
     ), 200
 
- 
- 
+
+
+
+
 #  PUT Edit mechanic in service tickets 
 @service_tickets_bp.route("/<int:ticket_id>/edit", methods=["PUT"])
 def edit_ticket_mechanics(ticket_id):
@@ -187,12 +310,48 @@ def edit_ticket_mechanics(ticket_id):
 
 
 
+
+
 # PUT remove mechanic from ticket id 
 @service_tickets_bp.route(
     "/<int:ticket_id>/remove-mechanic/<int:mechanic_id>",
     methods=["PUT"],
 )
 def remove_mechanic(ticket_id, mechanic_id):
+    """
+    Assign a mechanic to a service ticket
+    ---
+    tags:
+      - Service Tickets
+
+    summary: Assign a mechanic to a service ticket
+    description: Assigns an existing mechanic to an existing service ticket.
+
+    parameters:
+      - name: ticket_id
+        in: path
+        required: true
+        type: integer
+        description: The ID of the service ticket
+
+      - name: mechanic_id
+        in: path
+        required: true
+        type: integer
+        description: The ID of the mechanic to assign
+
+    responses:
+      200:
+        description: Mechanic assigned successfully
+        schema:
+          $ref: '#/definitions/ServiceTicketResponse'
+
+      404:
+        description: Service ticket or mechanic not found
+
+      409:
+        description: Mechanic is already assigned to this service ticket
+    """
     service_ticket = db.session.get(
         ServiceTicket,
         ticket_id,
@@ -228,12 +387,48 @@ def remove_mechanic(ticket_id, mechanic_id):
 
 
 
+
+
 # PUT Add Part to Service Ticket
 @service_tickets_bp.route(
     "/<int:ticket_id>/add-part/<int:inventory_id>",
     methods=["PUT"]
 )
 def add_part_to_ticket(ticket_id, inventory_id):
+    """
+    Add an inventory part to a service ticket
+    ---
+    tags:
+      - Service Tickets
+
+    summary: Add a part to a service ticket
+    description: Assigns an existing inventory part to an existing service ticket.
+
+    parameters:
+      - name: ticket_id
+        in: path
+        required: true
+        type: integer
+        description: The ID of the service ticket
+
+      - name: inventory_id
+        in: path
+        required: true
+        type: integer
+        description: The ID of the inventory part to add
+
+    responses:
+      200:
+        description: Inventory part added successfully
+        schema:
+          $ref: '#/definitions/ServiceTicketResponse'
+
+      400:
+        description: Part is already assigned to this service ticket
+
+      404:
+        description: Service ticket or inventory part not found
+    """
     ticket = db.session.get(ServiceTicket, ticket_id)
 
     if not ticket:
