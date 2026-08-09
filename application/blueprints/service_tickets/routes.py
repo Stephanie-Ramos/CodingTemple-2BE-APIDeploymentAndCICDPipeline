@@ -404,7 +404,7 @@ def edit_ticket_mechanics(ticket_id):
 )
 def remove_mechanic(ticket_id, mechanic_id):
     """
-    Assign a mechanic to a service ticket
+    Remove a mechanic to a service ticket
     ---
     tags:
       - Service Tickets
