@@ -19,7 +19,7 @@ from marshmallow import ValidationError
 
 
 
-# POST create an inventory part
+# First, POST create an inventory part
 @inventory_bp.route("/", methods=["POST"])
 def create_inventory():
     """
@@ -94,7 +94,7 @@ def create_inventory():
     
     
     
-# GET read inventory 
+# Second, GET read inventory 
 @inventory_bp.route("/", methods=["GET"])
 def get_inventory():
     """
@@ -129,7 +129,7 @@ def get_inventory():
 
 
 
-# GET read inventory part by ID
+# Third, GET read inventory part by ID
 @inventory_bp.route(
     "/<int:inventory_id>",
     methods=["GET"]
@@ -183,7 +183,7 @@ def get_inventory_by_id(inventory_id):
 
 
 
-# PUT update inventory part by ID
+# Fourth, PUT update inventory part by ID
 @inventory_bp.route(
     "/<int:inventory_id>",
     methods=["PUT"]
@@ -261,7 +261,7 @@ def update_inventory(inventory_id):
 
 
 
-# DELETE delete inventory part by ID
+# Fifth, DELETE delete inventory part by ID
 @inventory_bp.route(
     "/<int:inventory_id>",
     methods=["DELETE"]

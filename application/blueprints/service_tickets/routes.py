@@ -18,7 +18,7 @@ from application.models import (
 
 
 
-# POST create service ticket
+# First, POST create service ticket
 @service_tickets_bp.route("/", methods=["POST"])
 def create_service_ticket():
     """
@@ -133,7 +133,7 @@ def create_service_ticket():
 
 
 
-# GET all service tickets
+# Second, GET all service tickets
 @service_tickets_bp.route("/", methods=["GET"])
 def get_service_tickets():
     """
@@ -165,7 +165,7 @@ def get_service_tickets():
 
 
 
-# GET service ticket by ID
+# Third, GET service ticket by ID
 @service_tickets_bp.route(
     "/<int:ticket_id>",
     methods=["GET"],
@@ -214,7 +214,7 @@ def get_service_ticket(ticket_id):
 
 
 
-# PUT assign mechanic to ticket id 
+# Fourth, PUT assign mechanic to ticket id 
 @service_tickets_bp.route(
     "/<int:ticket_id>/assign-mechanic/<int:mechanic_id>",
     methods=["PUT"],
@@ -292,7 +292,7 @@ def assign_mechanic(ticket_id, mechanic_id):
 
 
 
-#  PUT Edit mechanic in service tickets 
+# Fifth, PUT Edit mechanic in service tickets 
 @service_tickets_bp.route("/<int:ticket_id>/edit", methods=["PUT"])
 def edit_ticket_mechanics(ticket_id):
     """
@@ -397,7 +397,7 @@ def edit_ticket_mechanics(ticket_id):
 
 
 
-# PUT remove mechanic from ticket id 
+# Sixth, PUT remove mechanic from ticket id 
 @service_tickets_bp.route(
     "/<int:ticket_id>/remove-mechanic/<int:mechanic_id>",
     methods=["PUT"],
@@ -474,7 +474,7 @@ def remove_mechanic(ticket_id, mechanic_id):
 
 
 
-# PUT Add Part to Service Ticket
+# Seventh, PUT Add Part to Service Ticket
 @service_tickets_bp.route(
     "/<int:ticket_id>/add-part/<int:inventory_id>",
     methods=["PUT"]

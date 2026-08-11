@@ -35,7 +35,7 @@ from sqlalchemy.exc import IntegrityError
 
 
 
-# POST create customer
+# First, POST create customer
 # the full URL becomes POST /customers/
 @customers_bp.route("/", methods=["POST"])
 # Defines the function that runs when someone creates a customer 
@@ -140,7 +140,7 @@ def create_customer():
 
 
 
-# GET All Customers
+# Second, GET All Customers
 @customers_bp.route("/", methods=["GET"])
 # Add Rate Limiting 
 # Rate limiting helps prevent excessive requests and protects the API
@@ -233,7 +233,7 @@ def get_customers():
 
 
 
-# GET One Customer
+# Third, GET One Customer
 @customers_bp.route("/<int:id>", methods=["GET"])
 def get_customer(id):
     """
@@ -275,7 +275,7 @@ def get_customer(id):
     return customer_schema.jsonify(customer), 200
 
 
-# PUT updates a customer 
+# Fourth, PUT updates a customer 
 @customers_bp.route("/<int:customer_id>", methods=["PUT"])
 # This protects the route with your JWT authentication decorator
 # The request must include a valid Bearer Token
@@ -380,7 +380,7 @@ def update_customer(auth_customer_id, customer_id):
 
 
 
-# POST Customer Login Route
+# Fifth, POST Customer Login Route
 # Creates POST /customers/login
 @customers_bp.route("/login", methods=["POST"])
 # allows the client to attempt this route up to five times per minute
@@ -455,7 +455,7 @@ def login():
 
 
 
-# GET all of my tickets   
+# Sixth, GET all of my tickets   
 # creates: GET /customers/my-tickets in the URL
 @customers_bp.route("/my-tickets", methods=["GET"])
 # requires a valid JWT
@@ -501,7 +501,7 @@ def get_my_tickets(customer_id):
 
 
 
-# DELETE a customer 
+# Seventh, DELETE a customer 
 @customers_bp.route("/<int:customer_id>", methods=["DELETE"])
 @token_required
 # auth_customer_id: receives authentication from the JWT

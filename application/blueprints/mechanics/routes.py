@@ -16,7 +16,7 @@ from application.blueprints.mechanics.schemas import (
 
 
 
-# POST Route: Create a mechanic
+# First, POST Route: Create a mechanic
 @mechanics_bp.route("/", methods=["POST"])
 def create_mechanic():
     """
@@ -106,7 +106,7 @@ def create_mechanic():
 
 
 
-# GET Route: Retrieve all mechanics 
+# Second, GET Route: Retrieve all mechanics 
 @mechanics_bp.route("/", methods=["GET"])
 # Caching this GET route reduces repeated database queries when the
 # mechanics list is requested frequently but has not recently changed
@@ -139,7 +139,7 @@ def get_mechanics():
 
 
 
-# GET Route: Retrieve one mechanic
+# Third, GET Route: Retrieve one mechanic
 @mechanics_bp.route("/<int:id>", methods=["GET"])
 def get_mechanic(id):
     """
@@ -180,7 +180,7 @@ def get_mechanic(id):
 
 
 
-# POST Route: Update a mechanic
+# Fourth, PUT Route: Update a mechanic
 @mechanics_bp.route("/<int:id>", methods=["PUT"])
 def update_mechanic(id):
     """
@@ -287,7 +287,7 @@ def update_mechanic(id):
 
 
 
-# GET Mechanics by most tickets 
+# Fifth, GET Mechanics by most tickets 
 @mechanics_bp.route("/most-tickets", methods=["GET"])
 def get_mechanics_by_ticket_count():
     """
@@ -359,7 +359,7 @@ def get_mechanics_by_ticket_count():
 
 
 
-# DELETE Route: Delete a mechanic 
+# Sixth, DELETE Route: Delete a mechanic 
 @mechanics_bp.route("/<int:id>", methods=["DELETE"])
 def delete_mechanic(id):
     """

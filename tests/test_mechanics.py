@@ -210,7 +210,7 @@ class TestMechanics(unittest.TestCase):
     
     
     
-    # Fourth, Positive Test: POST Route: Update a mechanic
+    # Fourth, Positive Test: PUT Route: Update a mechanic
     def test_update_mechanic(self):
         create_response = self.client.post(
             "/mechanics/",
@@ -253,7 +253,7 @@ class TestMechanics(unittest.TestCase):
             data["salary"],
             72000.00
         )
-    # Fourth, Negative Test: POST Route: Update a mechanic
+    # Fourth, Negative Test: PUT Route: Update a mechanic
     # A useful negative test is updating a mechanic that does not exist:
     def test_update_mechanic_not_found(self):
         response = self.client.put(
@@ -274,7 +274,7 @@ class TestMechanics(unittest.TestCase):
             data["message"],
             "Mechanic not found."
         )
-    # Fourth, Negative Part II Test: POST Route: Update a mechanic
+    # Fourth, Negative Part II Test: PUT Route: Update a mechanic
     # And because your route explicitly checks for an empty body, add:
     def test_update_mechanic_empty_body(self):
         create_response = self.client.post(

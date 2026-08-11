@@ -37,6 +37,7 @@ class TestCustomers(unittest.TestCase):
     
     
     # First, Positive Test: POST create customer 
+    # test_: Python's unittest framework knows that it should run this method automatically
     def test_create_customer(self):
         # creates fake customer information specifically for the test
         customer_payload = {
@@ -70,6 +71,7 @@ class TestCustomers(unittest.TestCase):
     # First, Negative Test: POST create customer
     # negative test because your email field is unique, so the API should reject the second customer instead of creating a duplicate
     def test_create_customer_duplicate_email(self):
+        # This creates the JSON data that will be sent to the Customer POST route. It acts like the body you would enter in Swagger. 
         customer_payload = {
             "name": "Test Customer",
             "email": "duplicate@email.com",
@@ -83,6 +85,7 @@ class TestCustomers(unittest.TestCase):
             json=customer_payload
         )
 
+        # This checks that the first customer is successfully created
         self.assertEqual(first_response.status_code, 201)
 
         # Try to create another customer
@@ -98,8 +101,10 @@ class TestCustomers(unittest.TestCase):
             400
         )
         
+        # takes the JSON response from Flask and turns it into a Python dictionary
         data = second_response.get_json()
 
+        # checks that the API returned the specific error message you expected
         self.assertEqual(
             data["message"],
             "Email already exists"
@@ -111,17 +116,23 @@ class TestCustomers(unittest.TestCase):
         
     # Second, Positive Test: GET all customers
     def test_get_customers(self):
+        # This uses Flask's test client to send a fake HTTP GET request to
+        # response: The response from your Flask route gets stored in
         response = self.client.get(
             "/customers/"
         )
 
+        # This checks that the route returned
         self.assertEqual(
             response.status_code,
             200
         )
 
+        # The Flask route returns JSON
+        # get_json() converts that JSON response into a Python object, usually a dictionary
         data = response.get_json()
 
+        # assertIn() means: Verify that this value exists inside another value
         self.assertIn(
             "customers",
             data
@@ -583,7 +594,7 @@ class TestCustomers(unittest.TestCase):
             check_response.status_code,
             404
         ) 
-    # SIX, Negative Test: Delete a Customer
+    # Seventh, Negative Test: Delete a Customer
     def test_delete_other_customer_forbidden(self):
         # Create customer 1
         first_response = self.client.post(
