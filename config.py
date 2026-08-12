@@ -47,6 +47,13 @@ class TestingConfig(Config):
     RATELIMIT_ENABLED = False
     
     
+
+class ProductionConfig(Config):
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URI')
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SECRET_KEY = os.getenv("SECRET_KEY")
+    
+    CACHE_TYPE = "SimpleCache"
     
 # This file serves as the central configuration file for your Flask application
 # The Config class keeps important application settings in one location
