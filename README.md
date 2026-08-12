@@ -1,33 +1,190 @@
-# Mechanic Shop API — Documentation and Testing
+# Mechanic Shop API — Deployment and CI/CD Pipeline
 
-## Project Description
+## Project Overview
 
-This project is a Flask-based REST API for managing a mechanic shop. It builds upon the previous Mechanic Shop backend project by adding API documentation with Swagger and automated endpoint testing using Python's built-in `unittest` library.
+This project is the final continuation of the **Mechanic Shop API** developed throughout the Backend Software Development module at Coding Temple.
 
-The API manages customers, mechanics, service tickets, and inventory. It also supports relationships between these resources, including assigning mechanics and inventory parts to service tickets.
+The previous **2 BE Documentation and Testing** project focused on documenting the API with Swagger/OpenAPI and creating automated unit tests for the application's routes.
 
-The primary focus of this project is ensuring that the API is well documented, testable, and reliable as it moves closer to a production-ready application.
+This project extends that API by preparing it for a **production environment**, deploying it to **Render**, connecting it to a hosted **PostgreSQL database**, and implementing a **CI/CD pipeline with GitHub Actions**.
+
+The completed application demonstrates the transition from a locally developed and tested Flask API to a publicly deployed API with automated testing and deployment.
+
+---
+
+## Previous Assigment vs. Current Project
+
+### Previous Assignment — Documentation and Testing
+
+The previous 2 BE assignment focused primarily on API quality, documentation, and testing.
+
+Features implemented included:
+
+* Swagger/OpenAPI documentation
+* Swagger UI
+* Route documentation for customers, mechanics, service tickets, and inventory
+* Positive and negative unit tests
+* Python `unittest`
+* Customer authentication testing
+* JWT-protected route testing
+* CRUD route testing
+* Error handling and HTTP status-code validation
+* Flask application factory architecture
+
+The goal was to ensure that the API was well documented and that its functionality could be automatically verified before deployment.
+
+### Current Project — Deployment and CI/CD
+
+This project builds on the previous API and adds production deployment and automation.
+
+New features include:
+
+* PostgreSQL database hosted on Render
+* Production-specific Flask configuration
+* Environment-variable management
+* Gunicorn production WSGI server
+* Flask API deployed as a Render Web Service
+* Production Swagger configuration using HTTPS
+* GitHub Actions workflow
+* Automated build process
+* Automated unit testing
+* Automated Render deployment
+* GitHub repository secrets
+* CI/CD pipeline that prevents deployment when tests fail
+
+The resulting workflow is:
+
+```text
+Developer pushes code to GitHub
+            ↓
+      GitHub Actions
+            ↓
+          Build
+            ↓
+           Test
+            ↓
+    Tests must succeed
+            ↓
+          Deploy
+            ↓
+     Render Web Service
+            ↓
+     PostgreSQL Database
+```
+
+---
+
+## Project Progression
+
+This project represents the final stage of the Mechanic Shop API developed throughout the Backend Software Development module.
+
+```text
+Mechanic Shop API
+        ↓
+CRUD + Database Relationships
+        ↓
+Authentication + Advanced API Features
+        ↓
+Swagger Documentation
+        ↓
+Automated Unit Testing
+        ↓
+Production Configuration
+        ↓
+PostgreSQL Deployment
+        ↓
+GitHub Actions
+        ↓
+Continuous Integration
+        ↓
+Continuous Deployment
+        ↓
+Live Production API
+```
+
+Compared with the previous **Documentation and Testing** assignment, this final project demonstrates not only that the API works and is documented, but also that it can be **built, tested, and deployed automatically through a production CI/CD workflow**.
 
 ---
 
 ## Technologies Used
 
-- Python
-- Flask
-- Flask-SQLAlchemy
-- SQLAlchemy
-- Marshmallow
-- MySQL
-- SQLite for testing
-- Flask-Swagger
-- Flask-Swagger-UI
-- Flask-Caching
-- Flask-Limiter
-- JWT Authentication
-- Python `unittest`
-- Postman
-- Git
-- GitHub
+### Backend
+
+* Python
+* Flask
+* Flask-SQLAlchemy
+* SQLAlchemy
+* Flask-Marshmallow
+* Marshmallow
+* Flask-Caching
+* Flask-Limiter
+* Python-JOSE
+
+### Database
+
+* PostgreSQL — production
+* SQLite — automated testing
+* SQLAlchemy ORM
+
+### API Documentation
+
+* Swagger / OpenAPI 2.0
+* Flask-Swagger
+* Flask-Swagger-UI
+
+### Testing
+
+* Python `unittest`
+* Flask test client
+
+### Deployment and DevOps
+
+* Render
+* Gunicorn
+* GitHub
+* GitHub Actions
+* GitHub Actions Secrets
+
+---
+
+## API Features
+
+The Mechanic Shop API manages the primary operations of a mechanic shop.
+
+The API includes functionality for:
+
+### Customers
+
+* Create customers
+* Retrieve customers
+* Retrieve individual customers
+* Update customers
+* Delete customers
+* Customer login
+* JWT authentication
+* Retrieve authenticated customer's service tickets
+
+### Mechanics
+
+* Create mechanics
+* Retrieve mechanics
+* Retrieve individual mechanics
+* Update mechanics
+* Delete mechanics
+
+### Service Tickets
+
+* Create service tickets
+* Retrieve service tickets
+* Retrieve individual service tickets
+* Update service tickets
+* Delete service tickets
+* Associate customers with service tickets
+* Associate mechanics with service tickets
+
+### Inventory
+
+The API also supports inventory-related functionality associated with mechanic shop operations.
 
 ---
 
@@ -36,387 +193,346 @@ The primary focus of this project is ensuring that the API is well documented, t
 ```text
 project/
 │
+├── .github/
+│   └── workflows/
+│       └── main.yaml
+│
 ├── application/
 │   ├── blueprints/
 │   │   ├── customers/
 │   │   ├── mechanics/
-│   │   ├── service_tickets/
-│   │   └── inventory/
+│   │   └── service_tickets/
 │   │
-│   ├── models/
-│   ├── extensions.py
+│   ├── utils/
+│   │   └── auth.py
+│   │
 │   └── __init__.py
 │
 ├── tests/
-│   ├── __init__.py
 │   ├── test_customers.py
 │   ├── test_mechanics.py
-│   ├── test_service_tickets.py
-│   └── test_inventory.py
+│   └── ...
 │
-├── app.py
-├── config.py
-├── requirements.txt
+├── .env
 ├── .gitignore
+├── config.py
+├── flask_app.py
+├── requirements.txt
 └── README.md
 ```
 
----
-
-## API Resources
-
-The API is organized into four primary resources.
-
-### Customers
-
-Customer routes provide functionality for:
-
-- Creating customers
-- Retrieving all customers
-- Retrieving an individual customer
-- Updating customer information
-- Deleting customers
-- Customer login
-- JWT authentication
-- Retrieving the authenticated customer's service tickets
-
-### Mechanics
-
-Mechanic routes provide functionality for:
-
-- Creating mechanics
-- Retrieving all mechanics
-- Retrieving an individual mechanic
-- Updating mechanic information
-- Deleting mechanics
-- Ranking mechanics by number of assigned service tickets
-
-### Service Tickets
-
-Service ticket routes provide functionality for:
-
-- Creating service tickets
-- Retrieving all service tickets
-- Retrieving individual service tickets
-- Assigning mechanics to service tickets
-- Editing mechanic assignments
-- Adding inventory parts to service tickets
-
-Service tickets are associated with customers and can have multiple mechanics and inventory parts assigned to them.
-
-### Inventory
-
-Inventory routes provide full CRUD functionality for mechanic shop parts:
-
-- Creating inventory parts
-- Retrieving all inventory
-- Retrieving an inventory part by ID
-- Updating inventory parts
-- Deleting inventory parts
-
-Inventory parts can also be assigned to service tickets.
+The `.env` file is excluded from GitHub using `.gitignore` and should never be committed to the repository.
 
 ---
 
-# API Documentation
+## Production Configuration
 
-API documentation is implemented using:
+The previous version of the application was primarily configured for local development.
 
-- `flask-swagger`
-- `flask-swagger-ui`
+This project introduces a separate `ProductionConfig` for the deployed application.
 
-Each documented API route includes information such as:
+Sensitive values are retrieved through environment variables using Python's `os` package.
 
-- Endpoint path
-- HTTP request method
-- Route tag/category
-- Summary
-- Description
-- Request parameters
-- Request payload definitions
-- Response definitions
-- Example request and response data
-- HTTP status codes
-- Security requirements for authenticated routes
-
-## Swagger UI
-
-Start the Flask application:
-
-```bash
-python app.py
-```
-
-The application runs locally on port `5001`.
-
-Open the Swagger UI in a browser:
+Examples include:
 
 ```text
-http://127.0.0.1:5001/api/docs/
+DATABASE_URL
+SECRET_KEY
 ```
 
-The Swagger interface provides interactive documentation for the API's Customer, Mechanic, Service Ticket, and Inventory endpoints.
+The production configuration allows the application to use different settings without hard-coding database credentials or secret keys into the source code.
 
 ---
 
-# Authentication
+## Environment Variables
 
-Some customer routes are protected using JWT authentication.
+Sensitive configuration values are not stored directly in the repository.
 
-A customer first logs in using the login endpoint:
-
-```text
-POST /customers/login
-```
-
-After successful authentication, the API returns a JWT.
-
-Protected endpoints require the token to be sent using the HTTP Authorization header:
+The application uses environment variables for values such as:
 
 ```text
-Authorization: Bearer <token>
+DATABASE_URL
+SECRET_KEY
 ```
 
-For example, the authenticated customer can retrieve their service tickets through:
+For local development, sensitive values can be stored in a `.env` file.
 
-```text
-GET /customers/my-tickets
-```
+The `.env` file is included in `.gitignore` so credentials are not committed to GitHub.
 
-Requests without a valid authentication token return an authorization error.
+Render environment variables are configured separately through the Render Web Service.
+
+GitHub Actions secrets are configured through the GitHub repository settings.
 
 ---
 
-# Testing
+## Database
 
-Automated testing is implemented using Python's built-in `unittest` library.
+The production application uses a **PostgreSQL database hosted on Render**.
 
-A separate test file is provided for each API blueprint:
+During local development, the Render External Database URL can be used when a connection to the hosted PostgreSQL database is required.
 
-```text
-tests/
-├── __init__.py
-├── test_customers.py
-├── test_mechanics.py
-├── test_service_tickets.py
-└── test_inventory.py
-```
+The deployed Flask Web Service uses Render's **Internal Database URL** to communicate with the PostgreSQL database within Render.
 
-The tests verify successful API requests as well as negative and edge-case behavior.
-
-Examples of tested behavior include:
-
-- Successful resource creation
-- Retrieving resources
-- Updating resources
-- Deleting resources
-- Invalid IDs
-- Missing request data
-- Duplicate email addresses
-- Missing customers
-- Missing mechanics
-- Missing inventory parts
-- Duplicate mechanic assignments
-- Duplicate inventory part assignments
-- Unauthorized requests
-- JWT-protected routes
-- Empty API resource lists
-
-## Run All Tests
-
-From the project root directory, activate the virtual environment and run:
-
-### macOS / Linux
-
-```bash
-source venv/bin/activate
-python -m unittest discover tests
-```
-
-### Windows
-
-```bash
-venv\Scripts\activate
-python -m unittest discover tests
-```
-
-A successful test run should finish with:
-
-```text
-OK
-```
-
-Individual blueprint tests can also be run separately.
-
-For example:
-
-```bash
-python -m unittest tests.test_customers
-```
-
-```bash
-python -m unittest tests.test_mechanics
-```
-
-```bash
-python -m unittest tests.test_service_tickets
-```
-
-```bash
-python -m unittest tests.test_inventory
-```
+SQLAlchemy provides the ORM layer between Flask and PostgreSQL.
 
 ---
 
-# Test Database
+## Gunicorn
 
-Testing uses a separate testing configuration so automated tests do not modify the production/development MySQL database.
+The previous assignment used Flask's development server when running locally.
 
-The test suite creates the required database tables for each test and removes test data after execution.
+For production deployment, this project uses **Gunicorn** as the WSGI server.
 
-This allows each test to run independently in a controlled environment.
+The production application is exposed through:
+
+```python
+app = create_app(ProductionConfig)
+```
+
+inside:
+
+```text
+flask_app.py
+```
+
+Render starts the application using:
+
+```bash
+gunicorn flask_app:app
+```
+
+The previous `app.run()` development-server command is therefore not required for production.
 
 ---
 
-# Installation
+## Installation
 
-## 1. Clone the Repository
+Clone the repository:
 
 ```bash
-git clone <your-repository-url>
-cd <your-project-folder>
+git clone <YOUR-GITHUB-REPOSITORY-URL>
 ```
 
-## 2. Create a Virtual Environment
+Navigate into the project:
+
+```bash
+cd CodingTemple-2BE-APIDeploymentAndCICDPipeline
+```
+
+Create a virtual environment:
 
 ```bash
 python3 -m venv venv
 ```
 
-## 3. Activate the Virtual Environment
-
-### macOS / Linux
+Activate the virtual environment on macOS/Linux:
 
 ```bash
 source venv/bin/activate
 ```
 
-### Windows
-
-```bash
-venv\Scripts\activate
-```
-
-## 4. Install Dependencies
+Install the project dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## 5. Configure Environment Variables
+---
 
-Create a `.env` file for sensitive configuration values such as database credentials and JWT secrets.
+## Running Tests
 
-Example:
+The project uses Python's built-in `unittest` framework.
 
-```text
-DATABASE_URL=<your-database-connection>
-SECRET_KEY=<your-secret-key>
-```
-
-The `.env` file should not be committed to GitHub.
-
-Make sure `.gitignore` contains:
-
-```text
-.env
-venv/
-__pycache__/
-*.pyc
-```
-
-## 6. Start the Application
+Run the complete test suite with:
 
 ```bash
-python app.py
+python -m unittest discover -s tests
 ```
 
-The API will run at:
+The test suite verifies the behavior of the API before changes are allowed to proceed through the deployment stage of the CI/CD pipeline.
+
+---
+
+## Swagger API Documentation
+
+Swagger documentation from the previous Documentation and Testing assignment remains part of the deployed API.
+
+For production, Swagger was updated to use the Render hostname and HTTPS:
+
+```python
+swag["host"] = "mechanic-shop-api-08qs.onrender.com"
+swag["basePath"] = "/"
+swag["schemes"] = ["https"]
+```
+
+### Live Swagger Documentation
+
+https://mechanic-shop-api-08qs.onrender.com/api/docs/
+
+Swagger can be used to review the available endpoints, request parameters, authentication requirements, response structures, and HTTP status codes.
+
+---
+
+## Render Deployment
+
+The Flask API is deployed as a **Render Web Service**.
+
+### Build Command
+
+```bash
+pip install -r requirements.txt
+```
+
+### Start Command
+
+```bash
+gunicorn flask_app:app
+```
+
+### Production Environment Variables
+
+Render stores the application's sensitive production configuration, including:
 
 ```text
-http://127.0.0.1:5001
+DATABASE_URL
+SECRET_KEY
 ```
 
-Swagger documentation can be viewed at:
+These values are not stored directly in the GitHub repository.
+
+### Live API
+
+https://mechanic-shop-api-08qs.onrender.com
+
+---
+
+## CI/CD Pipeline
+
+A major addition in this project is the implementation of a **Continuous Integration and Continuous Deployment (CI/CD) pipeline** using GitHub Actions.
+
+The workflow configuration is located at:
 
 ```text
-http://127.0.0.1:5001/api/docs/
+.github/workflows/main.yaml
+```
+
+The workflow automatically runs when changes are pushed to the configured branch.
+
+### Build Job
+
+The build job:
+
+1. Checks out the GitHub repository.
+2. Sets up Python.
+3. Upgrades `pip`.
+4. Installs the dependencies from `requirements.txt`.
+
+### Test Job
+
+The test job runs after the build job.
+
+It executes:
+
+```bash
+python -m unittest discover -s tests
+```
+
+The application must successfully pass its automated tests before deployment can continue.
+
+### Deploy Job
+
+The deploy job depends on the test job:
+
+```yaml
+needs: test
+```
+
+This means deployment only occurs after the test suite succeeds.
+
+After successful testing, GitHub Actions uses the Render API to trigger a new deployment of the Flask Web Service.
+
+---
+
+## GitHub Actions Secrets
+
+Sensitive information used by the workflow is stored through **GitHub Actions repository secrets** rather than directly inside `main.yaml`.
+
+The workflow uses secrets including:
+
+```text
+SECRET_KEY
+DATABASE_URL
+RENDER_API_KEY
+SERVICE_ID
+```
+
+This keeps credentials and deployment information separate from the source code.
+
+---
+
+## CI/CD Workflow
+
+The completed CI/CD process follows this sequence:
+
+```text
+git push
+    ↓
+GitHub Repository
+    ↓
+GitHub Actions
+    ↓
+Build
+    ↓
+Test
+    ↓
+Deploy
+    ↓
+Render
+    ↓
+Flask API
+    ↓
+PostgreSQL
+```
+
+If the automated tests fail, the deployment job does not execute.
+
+If the tests pass, GitHub Actions triggers the Render deployment automatically.
+
+This provides a safer and more consistent deployment process than manually redeploying the application after every code change.
+
+---
+
+## Security
+
+Several practices are used to prevent sensitive information from being exposed:
+
+* `.env` is excluded through `.gitignore`.
+* Database credentials are not hard-coded into the application.
+* Secret keys are stored as environment variables.
+* GitHub Actions uses repository secrets.
+* Render stores production environment variables separately from the source code.
+* JWT authentication protects applicable customer routes.
+
+Sensitive credentials should never be committed to GitHub.
+
+---
+
+## Live Application
+
+### Render API
+
+https://mechanic-shop-api-08qs.onrender.com
+
+### Swagger Documentation
+
+https://mechanic-shop-api-08qs.onrender.com/api/docs/
+
+### GitHub Repository
+
+Add the GitHub repository URL here:
+
+```text
+https://github.com/Stephanie-Ramos/CodingTemple-2BE-APIDeploymentAndCICDPipeline
 ```
 
 ---
-
-# HTTP Status Codes
-
-The API uses standard HTTP status codes, including:
-
-| Status Code | Meaning |
-|---|---|
-| `200` | Request completed successfully |
-| `201` | Resource successfully created |
-| `400` | Invalid or missing request data |
-| `401` | Authentication required or invalid |
-| `403` | User is not authorized to perform the action |
-| `404` | Requested resource was not found |
-| `409` | Resource conflict, such as duplicate data |
-
----
-
-# API Testing with Postman
-
-The API can also be manually tested using Postman.
-
-A Postman collection is included with the project to help test API endpoints and authentication workflows.
-
-For protected routes:
-
-1. Log in using the customer login endpoint.
-2. Copy the returned JWT.
-3. Select **Bearer Token** authentication in Postman.
-4. Paste the JWT into the token field.
-5. Send the protected request.
-
-Postman is useful for manual API verification, while `unittest` provides repeatable automated testing.
-
----
-
-# Key Project Features
-
-This project demonstrates:
-
-- RESTful API development with Flask
-- Application factory architecture
-- Flask Blueprints
-- SQLAlchemy ORM
-- MySQL database integration
-- Marshmallow serialization and validation
-- One-to-many relationships
-- Many-to-many relationships
-- JWT authentication
-- Protected API routes
-- Rate limiting
-- Response caching
-- Swagger/OpenAPI documentation
-- Automated API testing
-- Positive and negative test cases
-- HTTP error handling
-- Postman API testing
-
----
-
-# Assignment Objective
-
-The objective of this project is to improve the reliability and maintainability of an existing backend API by incorporating comprehensive documentation and automated testing.
-
-Swagger provides developers with an interactive interface for understanding and testing API endpoints, while Python's `unittest` framework verifies that API resources behave correctly under both successful and unsuccessful conditions.
-
-Together, these additions help prepare the Mechanic Shop API for a more production-ready development workflow.
