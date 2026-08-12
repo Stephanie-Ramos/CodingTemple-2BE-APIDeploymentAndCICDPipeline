@@ -2,13 +2,6 @@
 # One of its most common uses is reading environment variables 
 import os
 
-# Imports the load_dotenv() function from the python-dotenv package
-# This package reads a .env file and loads its contents into your program as environment variables
-from dotenv import load_dotenv
-
-# Reads your .env file and loads every variable into the program's environment
-load_dotenv()
-
 
 # This class stores all of your Flask configuration settings in one place 
 class Config:
@@ -49,7 +42,7 @@ class TestingConfig(Config):
     
 
 class ProductionConfig(Config):
-    SQLALCHEMY_DATABASE_URI = os.environ.get('EXTERNAL_DATABASE_URL')
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = os.getenv("SECRET_KEY")
     
