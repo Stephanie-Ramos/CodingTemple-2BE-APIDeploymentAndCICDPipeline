@@ -78,7 +78,10 @@ def create_app(config_class=Config):
             "version": "1.0"
         }
         
+        # Production Render URL
+        swag["host"] = "mechanic-shop-api-08qs.onrender.com"
         swag["basePath"] = "/"
+        swag["schemes"] = ["https"]
         
         swag["securityDefinitions"] = {
             "BearerAuth": {
