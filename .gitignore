@@ -32,3 +32,4 @@ htmlcov/
 *.log
 .neon
 node_modules/
+.vercel
