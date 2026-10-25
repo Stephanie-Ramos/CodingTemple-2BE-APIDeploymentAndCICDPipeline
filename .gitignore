@@ -30,3 +30,5 @@ htmlcov/
 
 # Misc
 *.log
+.neon
+node_modules/

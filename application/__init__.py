@@ -1,5 +1,5 @@
 # The Flask class is used to create your web application
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_swagger import swagger
 from flask_swagger_ui import get_swaggerui_blueprint
 
@@ -79,7 +79,7 @@ def create_app(config_class=Config):
         }
         
         # Production Render URL
-        swag["host"] = "mechanic-shop-api-08qs.onrender.com"
+        swag["host"] = request.host
         swag["basePath"] = "/"
         swag["schemes"] = ["https"]
         
@@ -110,6 +110,14 @@ def create_app(config_class=Config):
         swagger_ui_blueprint,
         url_prefix=SWAGGER_URL
     )
+    
+    # Root route  <-- add this
+    @app.route("/")
+    def home():
+        return jsonify({
+            "message": "Mechanic Shop API",
+            "docs": "/api/docs"
+        })
 
     # Application Context: creates database tables 
     # Use this application while running the following code
