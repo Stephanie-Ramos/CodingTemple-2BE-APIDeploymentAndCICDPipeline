@@ -6,13 +6,13 @@ This project is the final continuation of the **Mechanic Shop API** developed th
 
 The previous **2 BE Documentation and Testing** project focused on documenting the API with Swagger/OpenAPI and creating automated unit tests for the application's routes.
 
-This project extends that API by preparing it for a **production environment**, deploying it to **Render**, connecting it to a hosted **PostgreSQL database**, and implementing a **CI/CD pipeline with GitHub Actions**.
+This project extends that API by preparing it for a **production environment**, deploying it to **Vercel** as a serverless Flask application, connecting it to a hosted **Neon PostgreSQL database**, and implementing a **CI/CD pipeline with GitHub Actions**.
 
-The completed application demonstrates the transition from a locally developed and tested Flask API to a publicly deployed API with automated testing and deployment.
+The completed application demonstrates the transition from a locally developed and tested Flask API to a publicly deployed API with automated building, testing, and deployment.
 
 ---
 
-## Previous Assigment vs. Current Project
+## Previous Assignment vs. Current Project
 
 ### Previous Assignment — Documentation and Testing
 
@@ -39,18 +39,17 @@ This project builds on the previous API and adds production deployment and autom
 
 New features include:
 
-* PostgreSQL database hosted on Render
+* Neon serverless PostgreSQL database
 * Production-specific Flask configuration
 * Environment-variable management
-* Gunicorn production WSGI server
-* Flask API deployed as a Render Web Service
+* Flask API deployed on Vercel as a serverless function
 * Production Swagger configuration using HTTPS
 * GitHub Actions workflow
-* Automated build process
+* Automated build verification
 * Automated unit testing
-* Automated Render deployment
+* Automated Vercel deployment
 * GitHub repository secrets
-* CI/CD pipeline that prevents deployment when tests fail
+* CI/CD pipeline that prevents deployment when the build or tests fail
 
 The resulting workflow is:
 
@@ -63,14 +62,31 @@ Developer pushes code to GitHub
             ↓
            Test
             ↓
-    Tests must succeed
+ Build and tests must succeed
             ↓
           Deploy
             ↓
-     Render Web Service
+     Vercel (Flask API)
             ↓
-     PostgreSQL Database
+     Neon PostgreSQL Database
 ```
+
+---
+
+## Migration Notes: Render to Vercel
+
+The API was originally deployed as a Render Web Service backed by a Render PostgreSQL database. It now runs on Vercel with a Neon database.
+
+| Area | Previously (Render) | Now (Vercel) |
+|---|---|---|
+| Hosting | Render Web Service | Vercel serverless function |
+| Web server | Gunicorn (`gunicorn flask_app:app`) | Managed by Vercel (no Gunicorn needed) |
+| Entrypoint | `flask_app:app` start command | `index.py` at the project root imports `app` from `flask_app.py` |
+| Database | Render PostgreSQL | Neon PostgreSQL (pooled connection string) |
+| DB connections | Standard SQLAlchemy connection pool | `NullPool`, because serverless functions are short-lived |
+| Swagger host | Hard-coded Render hostname | Taken from the incoming request (`request.host`) |
+| Deploy step | Render API call from GitHub Actions | Vercel CLI from GitHub Actions |
+| Workflow secrets | `RENDER_API_KEY`, `SERVICE_ID` | `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` |
 
 ---
 
@@ -91,13 +107,13 @@ Automated Unit Testing
         ↓
 Production Configuration
         ↓
-PostgreSQL Deployment
+Neon PostgreSQL Database
         ↓
 GitHub Actions
         ↓
 Continuous Integration
         ↓
-Continuous Deployment
+Continuous Deployment to Vercel
         ↓
 Live Production API
 ```
@@ -119,10 +135,12 @@ Compared with the previous **Documentation and Testing** assignment, this final 
 * Flask-Caching
 * Flask-Limiter
 * Python-JOSE
+* python-dotenv
+* psycopg2
 
 ### Database
 
-* PostgreSQL — production
+* PostgreSQL on Neon — production
 * SQLite — automated testing
 * SQLAlchemy ORM
 
@@ -139,8 +157,9 @@ Compared with the previous **Documentation and Testing** assignment, this final 
 
 ### Deployment and DevOps
 
-* Render
-* Gunicorn
+* Vercel
+* Vercel CLI
+* Neon
 * GitHub
 * GitHub Actions
 * GitHub Actions Secrets
@@ -186,6 +205,10 @@ The API includes functionality for:
 
 The API also supports inventory-related functionality associated with mechanic shop operations.
 
+### Root Route
+
+`GET /` returns a short JSON message with a link to the Swagger documentation.
+
 ---
 
 ## Project Structure
@@ -201,7 +224,8 @@ project/
 │   ├── blueprints/
 │   │   ├── customers/
 │   │   ├── mechanics/
-│   │   └── service_tickets/
+│   │   ├── service_tickets/
+│   │   └── inventory/
 │   │
 │   ├── utils/
 │   │   └── auth.py
@@ -215,13 +239,21 @@ project/
 │
 ├── .env
 ├── .gitignore
+├── .python-version
 ├── config.py
 ├── flask_app.py
+├── index.py
 ├── requirements.txt
 └── README.md
 ```
 
-The `.env` file is excluded from GitHub using `.gitignore` and should never be committed to the repository.
+Key deployment files:
+
+* `index.py` — the Vercel entrypoint. It contains a single line, `from flask_app import app`.
+* `.python-version` — pins the Python version used for deployment.
+* `flask_app.py` — builds the application with `ProductionConfig`.
+
+The `.env` file is excluded from GitHub using `.gitignore` and should never be committed to the repository. The `.vercel` folder created by the Vercel CLI is also excluded.
 
 ---
 
@@ -242,6 +274,15 @@ SECRET_KEY
 
 The production configuration allows the application to use different settings without hard-coding database credentials or secret keys into the source code.
 
+Because Vercel runs the API as short-lived serverless functions, `ProductionConfig` disables SQLAlchemy's own connection pooling and relies on Neon's connection pooler instead:
+
+```python
+from sqlalchemy.pool import NullPool
+
+class ProductionConfig(Config):
+    SQLALCHEMY_ENGINE_OPTIONS = {"poolclass": NullPool}
+```
+
 ---
 
 ## Environment Variables
@@ -255,53 +296,78 @@ DATABASE_URL
 SECRET_KEY
 ```
 
-For local development, sensitive values can be stored in a `.env` file.
+For local development, sensitive values can be stored in a `.env` file:
 
-The `.env` file is included in `.gitignore` so credentials are not committed to GitHub.
+```text
+DATABASE_URL=<your Neon pooled connection string>
+SECRET_KEY=<a long random string>
+```
 
-Render environment variables are configured separately through the Render Web Service.
+Enter the values without quotation marks. Each line must be in `NAME=value` format.
 
-GitHub Actions secrets are configured through the GitHub repository settings.
+Vercel environment variables are configured per project, either in the Vercel dashboard under **Settings → Environment Variables** or with the Vercel CLI:
+
+```bash
+vercel env add DATABASE_URL
+vercel env add SECRET_KEY
+```
+
+Both are stored as **Secret** variables for the **Production** environment. GitHub Actions secrets are configured separately through the GitHub repository settings.
 
 ---
 
 ## Database
 
-The production application uses a **PostgreSQL database hosted on Render**.
+The production application uses a **PostgreSQL database hosted on Neon**.
 
-During local development, the Render External Database URL can be used when a connection to the hosted PostgreSQL database is required.
-
-The deployed Flask Web Service uses Render's **Internal Database URL** to communicate with the PostgreSQL database within Render.
+The application connects through Neon's **pooled** connection string (the hostname contains `-pooler`). This is the same connection string used in local development when a connection to the hosted database is required.
 
 SQLAlchemy provides the ORM layer between Flask and PostgreSQL.
 
+The application factory calls `db.create_all()` at startup, so any missing tables are created automatically in the Neon database.
+
+Automated tests do not use Neon. They run against an in-memory SQLite database through `TestingConfig`.
+
+Neon may pause an idle database, so the first request after a quiet period can take a few extra seconds.
+
 ---
 
-## Gunicorn
+## Vercel Deployment
 
-The previous assignment used Flask's development server when running locally.
+The Flask API is deployed on **Vercel**. Vercel detects the Flask application through the `index.py` entrypoint at the project root and runs it as a single serverless function. A separate WSGI server such as Gunicorn is not required.
 
-For production deployment, this project uses **Gunicorn** as the WSGI server.
-
-The production application is exposed through:
+The production application is created inside `flask_app.py`:
 
 ```python
 app = create_app(ProductionConfig)
 ```
 
-inside:
+and exposed to Vercel through `index.py`:
 
-```text
-flask_app.py
+```python
+from flask_app import app
 ```
 
-Render starts the application using:
+### Deploying Manually
+
+Install the Vercel CLI, log in, and deploy to production from the project folder:
 
 ```bash
-gunicorn flask_app:app
+npm install -g vercel
+vercel login
+vercel --prod
 ```
 
-The previous `app.run()` development-server command is therefore not required for production.
+### Production Environment Variables
+
+Vercel stores the application's sensitive production configuration, including:
+
+```text
+DATABASE_URL
+SECRET_KEY
+```
+
+These values are not stored directly in the GitHub repository. Environment variable changes apply to new deployments, so redeploy after changing them.
 
 ---
 
@@ -337,6 +403,14 @@ Install the project dependencies:
 pip install -r requirements.txt
 ```
 
+Create a `.env` file with `DATABASE_URL` and `SECRET_KEY`, then start the development server:
+
+```bash
+flask --app flask_app run
+```
+
+The API is available at `http://127.0.0.1:5000` and the Swagger documentation at `http://127.0.0.1:5000/api/docs/`.
+
 ---
 
 ## Running Tests
@@ -357,52 +431,21 @@ The test suite verifies the behavior of the API before changes are allowed to pr
 
 Swagger documentation from the previous Documentation and Testing assignment remains part of the deployed API.
 
-For production, Swagger was updated to use the Render hostname and HTTPS:
+The OpenAPI specification is generated by Flask-Swagger at `/swagger`, and Swagger UI is served at `/api/docs/`.
+
+For production, the Swagger host is taken from the incoming request, so the documentation always points at the domain that is serving it (production, a preview deployment, or localhost). HTTPS is used for the scheme:
 
 ```python
-swag["host"] = "mechanic-shop-api-08qs.onrender.com"
+swag["host"] = request.host
 swag["basePath"] = "/"
 swag["schemes"] = ["https"]
 ```
 
 ### Live Swagger Documentation
 
-https://mechanic-shop-api-08qs.onrender.com/api/docs/
+https://mechanic-shop-api.vercel.app/api/docs/
 
 Swagger can be used to review the available endpoints, request parameters, authentication requirements, response structures, and HTTP status codes.
-
----
-
-## Render Deployment
-
-The Flask API is deployed as a **Render Web Service**.
-
-### Build Command
-
-```bash
-pip install -r requirements.txt
-```
-
-### Start Command
-
-```bash
-gunicorn flask_app:app
-```
-
-### Production Environment Variables
-
-Render stores the application's sensitive production configuration, including:
-
-```text
-DATABASE_URL
-SECRET_KEY
-```
-
-These values are not stored directly in the GitHub repository.
-
-### Live API
-
-https://mechanic-shop-api-08qs.onrender.com
 
 ---
 
@@ -416,16 +459,19 @@ The workflow configuration is located at:
 .github/workflows/main.yaml
 ```
 
-The workflow automatically runs when changes are pushed to the configured branch.
+The workflow runs on pushes to `main` and on pull requests targeting `main`.
 
 ### Build Job
 
 The build job:
 
 1. Checks out the GitHub repository.
-2. Sets up Python.
+2. Sets up Python 3.12.
 3. Upgrades `pip`.
 4. Installs the dependencies from `requirements.txt`.
+5. Runs `pip check` to confirm the installed dependencies are consistent.
+6. Compiles all source files with `python -m compileall`.
+7. Runs a smoke test that creates the Flask application with `TestingConfig`, confirming the app can start in a clean environment without connecting to a real database.
 
 ### Test Job
 
@@ -447,9 +493,13 @@ The deploy job depends on the test job:
 needs: test
 ```
 
-This means deployment only occurs after the test suite succeeds.
+It also only runs for pushes to the `main` branch, so pull requests are built and tested but never deployed.
 
-After successful testing, GitHub Actions uses the Render API to trigger a new deployment of the Flask Web Service.
+After successful testing, GitHub Actions installs the Vercel CLI and deploys the application to production:
+
+```bash
+vercel deploy --prod --yes --token=$VERCEL_TOKEN
+```
 
 ---
 
@@ -461,10 +511,14 @@ The workflow uses secrets including:
 
 ```text
 SECRET_KEY
-DATABASE_URL
-RENDER_API_KEY
-SERVICE_ID
+VERCEL_TOKEN
+VERCEL_ORG_ID
+VERCEL_PROJECT_ID
 ```
+
+`VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` come from the `.vercel/project.json` file created when the project is linked with the Vercel CLI. `VERCEL_TOKEN` is a Vercel access token scoped to the team that owns the project.
+
+`DATABASE_URL` is stored in Vercel's environment variables rather than in GitHub, because automated tests run on SQLite.
 
 This keeps credentials and deployment information separate from the source code.
 
@@ -485,18 +539,18 @@ Build
     ↓
 Test
     ↓
-Deploy
+Deploy (main branch only)
     ↓
-Render
+Vercel
     ↓
 Flask API
     ↓
-PostgreSQL
+Neon PostgreSQL
 ```
 
-If the automated tests fail, the deployment job does not execute.
+If the build or the automated tests fail, the deployment job does not execute.
 
-If the tests pass, GitHub Actions triggers the Render deployment automatically.
+If they pass on a push to `main`, GitHub Actions deploys the new version to Vercel automatically.
 
 This provides a safer and more consistent deployment process than manually redeploying the application after every code change.
 
@@ -506,33 +560,38 @@ This provides a safer and more consistent deployment process than manually redep
 
 Several practices are used to prevent sensitive information from being exposed:
 
-* `.env` is excluded through `.gitignore`.
+* `.env` and `.vercel` are excluded through `.gitignore`.
 * Database credentials are not hard-coded into the application.
 * Secret keys are stored as environment variables.
 * GitHub Actions uses repository secrets.
-* Render stores production environment variables separately from the source code.
+* Vercel stores production environment variables separately from the source code, as Secret variables.
 * JWT authentication protects applicable customer routes.
 
 Sensitive credentials should never be committed to GitHub.
 
 ---
 
+## Deployment Considerations
+
+* **Cold starts:** the first request after a period of inactivity is slower, because the serverless function starts up and the Neon database may need to wake.
+* **Rate limiting and caching:** Flask-Limiter and Flask-Caching use in-memory storage, which is separate for each serverless instance. Limits and cached values are therefore not shared across instances.
+* **Table creation:** `db.create_all()` creates missing tables but does not modify the structure of existing tables.
+* **Redirect on the docs URL:** `/api/docs` redirects to `/api/docs/` (with a trailing slash).
+
+---
+
 ## Live Application
 
-### Render API
+### Vercel API
 
-https://mechanic-shop-api-08qs.onrender.com
+https://mechanic-shop-api.vercel.app
 
 ### Swagger Documentation
 
-https://mechanic-shop-api-08qs.onrender.com/api/docs/
+https://mechanic-shop-api.vercel.app/api/docs/
 
 ### GitHub Repository
-
-Add the GitHub repository URL here:
 
 ```text
 https://github.com/Stephanie-Ramos/CodingTemple-2BE-APIDeploymentAndCICDPipeline
 ```
-
----
